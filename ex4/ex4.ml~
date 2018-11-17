@@ -1,0 +1,20 @@
+(* Zad. 1 *)
+
+let palindrom k = let rec halve_aux k m acc =
+                    match (k, m) with
+                    | (t, [])             -> (acc, t)
+                    | (t::ts, [_])        -> (acc, ts)
+                    | (x::xs, y1::y2::ys) -> halve_aux xs ys (x::acc)
+                  in
+                  let (a, b) = halve_aux k k [] in a = b;;
+
+let () = Printf.printf "palindrom [1;2;3;4;5;4;3;2;1]: %b\n" (palindrom [1;2;3;4;5;4;3;2;1]);;
+let () = Printf.printf "palindrom [1;2;3;4;5;4;3;1]: %b\n" (palindrom [1;2;3;4;5;4;3;1]);;
+let () = Printf.printf "palindrom []: %b\n" (palindrom []);;
+let () = Printf.printf "palindrom ['a']: %b\n" (palindrom ['a']);;
+
+(* Zad. 2 *)
+
+type 'a btree = Leaf | Node of 'a btree * 'a * 'a btree;;
+
+

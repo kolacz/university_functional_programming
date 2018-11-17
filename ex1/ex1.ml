@@ -1,0 +1,202 @@
+(* Zad 1 *)
+(*** Typem wyra¿enia "fun x -> x" jest "'a -> 'a". ***)
+(*** Wyra¿enie anonimowe reprezentuj±ce funkcjê identyczno¶ciow±, którego
+     typem w OCamlu jest "int -> int": ***)
+fun x -> x + 0
+
+(*** Funkcje o typie "'a -> 'b" to np. ***)
+let foo1 x = List.hd []
+let rec foo2 x = foo2 x
+let foo3 x = failwith "jedyny oryginalny element tej odpowiedzi"
+
+(*** Wyra¿eniem o typie 
+     "('a -> 'b) -> ('c -> 'a) -> 'c -> 'b" jest operator z³o¿enia funkcji: ***)
+let comp f g = fun x -> f (g x)
+
+(* Zad 2 *)
+
+let rec a(n :float) :float = if n = 0. then 0.
+                             else 2. *. a(n -. 1.) +. 1.
+
+let rec b1 (n :float) (acc: float) :float = if n = 0. then acc
+                                            else b1 (n -. 1.) (2. *. acc +. 1.);;
+let b(n :float) :float = b1 n 0. ;;
+                           
+Printf.printf "a: %f \nb: %f\n" (a(200.)) (b(200.));;
+Printf.printf "%s" (string_of_float(b(10000000.)));;
+(* Printf.printf "%s" (string_of_float(a(10000000.)));; *)
+
+(* Zad 3 *)
+
+let ($) f g = fun x -> f (g x)
+                     
+let rec iterate f n = if n = 0 then (fun x -> x)
+                      else f $ (iterate f (n-1));;
+
+let (@@) a b = iterate ((+) a) b 0;;
+let (@@@) a b = a * b;;
+
+let (^^) a b = iterate ((@@) a) b 1;; 
+let (^^^) a b = iterate ((@@@) a) b 1;;
+
+let () = Printf.printf "built-in power: %.0f\n" (2.**10.);;
+let () = Printf.printf "iteration with plain multiplication: %d\n" (2^^^10);;
+let () = Printf.printf "iteration with iterated mult: %d\n" (2^^10);;
+
+let () = Printf.printf "%d\n" (2^^^30);;
+(* let () = Printf.printf "%d\n" (2^^30);; *)
+
+
+(* Zad 4 *)
+
+let stream n = match n with
+  | 0 -> "a"
+  | 1 -> "b"
+  | 2 -> "c"
+  | 3 -> "d"
+  | 4 -> "e"
+  | 5 -> "f"
+  | 6 -> "g"
+  | 7 -> "h"
+  | 8 -> "i"
+  | 9 -> "j"
+  | _ -> "x"
+
+
+(******************************************)
+       
+let hd s = s 0;;
+let tl s = s $ ((+)1);;
+
+let () = Printf.printf "first 3 elements of 'stream': %s %s %s\n" (stream 0) (stream 1) (stream 2);;
+let () = Printf.printf "hd on 'stream': %s\n" (hd stream);;
+let () = Printf.printf "hd of tl on 'stream': %s\n" (hd (tl stream));;
+
+(******************************************)
+
+let int_stream n = match n with
+  | 0 -> 2
+  | 1 -> 3
+  | 2 -> 5
+  | 3 -> 7
+  | 4 -> 11
+  | 5 -> 13
+  | 6 -> 17
+  | 7 -> 19
+  | 8 -> 23
+  | 9 -> 29
+  | _ -> 42
+
+let add s k = fun (x :int) -> s x + k;;
+
+(******************************************)
+
+let map f s = fun (x :int) -> f (s x);;
+let mapp f s = f $ s;;
+
+let double x = 2*x;;
+let () = Printf.printf "8th element of map with 'double' on int_stream: %d\n"
+           ((map double int_stream) 8)
+
+(******************************************)
+
+let map2 f s1 s2 = fun x -> f (s1 x) (s2 x);; (*zip-³iss*)
+
+let () = Printf.printf "5th element of map2 with (+) on two int_streams: %d\n"
+           ((map2 (+) int_stream int_stream) 5);;
+
+(******************************************)
+
+(* s - stream, n - step, a - value *)
+let replace s n a = fun x -> if (x+1) mod n = 0 then a
+                             else s x;;
+
+let () = let restream = replace int_stream 3 100 in
+         Printf.printf "replace int_stream 3 100: %d %d %d %d %d %d ...\n"
+           (restream 0) (restream 1) (restream 2) (restream 3) (restream 4) (restream 5);;
+           
+(******************************************)
+
+let take s n = fun x -> s (n-1 + n*x);;
+
+let () = let tastream = take int_stream 3 in
+         Printf.printf "take int_stream 3: %d %d %d ...\n"
+           (tastream 0) (tastream 1) (tastream 2);;
+
+(******************************************)
+
+(* f: 'a -> 'b -> 'a, a: 'a, s: int -> 'b *) (*kurde, fajne to*)
+let rec scan f a s = fun n -> if n < 0 then a
+                              else f (scan f a s (n-1)) (s n);;
+
+let () = let scstream = scan (^) "" stream in
+         Printf.printf "scan on string stream: %s %s %s %s %s...\n"
+           (scstream 0) (scstream 1) (scstream 2) (scstream 3) (scstream 4);;
+
+(******************************************)
+
+let rec reverse list acc = match list with
+  | [] -> acc
+  | x :: xs -> reverse xs (x::acc) 
+             
+let tabulate s ?(b=0) e = reverse ((scan (fun t h -> h :: t) [] (s $ ((+)b))) (e-b)) [];; 
+
+let rec print_list list = match list with
+  | [] -> print_string "\n"
+  | x :: xs -> print_string x ; print_string " " ; print_list xs 
+
+let () = let tab = tabulate stream ~b:4 7 in print_list tab;;
+
+(* Zad 5 *)
+
+(*** ctrue, cfalse: 'a -> 'a -> 'a  ***)
+
+let ctrue x y = List.hd [x;y];;
+let cfalse x y = List.hd (List.tl [x;y]);;
+
+let cand p q x y = if (p x y = x) && (q x y = x) then x
+                   else y
+
+let cor p q x y = if (p x y = y) && (q x y = y) then y
+                  else x
+
+let cbool_of_bool b = match b with
+  | true -> ctrue
+  | false -> cfalse
+
+(* (bool -> bool -> bool) -> bool *)
+let bool_of_cbool cb :bool = cb true false;;
+                                                      
+
+(* Zad 6 *)
+
+let zero f x = x;;
+
+let succ n (f :'a->'a) (x :'a) = f (n f x);;
+
+let add n m = fun f x -> n f (m f x);;
+
+let mul n m = fun f x -> n (m f) x;;
+
+
+
+(* POPRAWIÆ *)
+let isZero n = if succ n =  then ctrue else cfalse;;
+
+
+
+(*** let rec _t_cnum_of_int k f x acc = if k = 0 then acc
+                                   else _t_cnum_of_int (k-1) f x (f acc);; ***)
+    
+let rec cnum_of_int k = if k = 0 then zero
+                        else succ (cnum_of_int (k-1));;
+
+let int_of_cnum n = n ((+)1) 0;;
+
+  
+                                                 
+                                                      
+
+
+                                             
+
