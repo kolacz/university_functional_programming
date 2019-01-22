@@ -134,6 +134,119 @@ let dfs_forest tree f = let rec dfs_aux_t tree f =
 (* druga reprezentacja *)
 type 'a mtree_lst = MTree of 'a * ('a mtree_lst) list;;
 
-let bfs_list tree f = 
+let m_l1 = MTree( 1,
+                  [MTree( 2,
+                          [MTree( 3, []);
+                           MTree( 4, [])]);
+                   MTree( 5, [])]);;
 
-let dfs_list tree f = ()
+let m_l2 = MTree( 1,
+                  [MTree( 2,
+                          [MTree( 3,
+                                  [MTree( 6, []);
+                                   MTree( 9, []);
+                                   MTree( 12,[])]);
+                           MTree( 4, [])]);
+                   MTree( 10,
+                          [MTree( 7,
+                                  [MTree( 15,[]);
+                                   MTree( 11,
+                                          [MTree( 19, [])]);
+                                   MTree( 0, [])]);
+                           MTree( 17, [])]);
+                   MTree( 5, [])]);;
+
+let bfs_lst tree f = let rec children_to_queue lst q =
+                       match lst with
+                       | []    -> q
+                       | c::cs -> let () = Queue.push c q in
+                                  children_to_queue cs q
+                     in
+                     let rec bfs_aux tree f queue =
+                       match tree with 
+                       | MTree(v, ts) -> let _ = f v and
+                                             queue = children_to_queue ts queue
+                                         in
+                                         if Queue.is_empty queue then ()
+                                         else bfs_aux (Queue.pop queue) f queue
+                     in
+                     bfs_aux tree f (Queue.create());;
+
+(*
+let dfs_lst tree f = let rec dfs_aux tree f =
+                       match tree with
+                       | MTree(v, ts) -> let _ = f v in
+                                         dfs_aux_lst ts f
+                     and dfs_aux_lst lst f =
+                       match lst with
+                       | []    -> ()
+                       | t::ts -> let _ = dfs_aux t f in
+                                  dfs_aux_lst ts f
+                     in
+                     dfs_aux tree f;; 
+*)
+
+let rec dfs_lst tree f = match tree with
+  | MTree(v, ts) -> let _ = f v
+                    in dfs_aux_lst ts f
+and dfs_aux_lst lst f =
+  match lst with
+  | []    -> ()
+  | t::ts -> let _ = dfs_lst t f
+             in dfs_aux_lst ts f;;
+
+
+(* Zad. 4 *)
+
+type formula = False | True
+               | Var of string
+               | Neg of formula
+               | Or  of formula * formula
+               | And of formula * formula;;
+
+type env = (string * bool) list;;  
+
+exception StopIteration of string
+let rec next_env (e :env) = match e with
+  | []         -> raise (StopIteration "enough")
+  | (v, b)::vs -> if b then (v, false)::(next_env vs)
+                       else (v,  true)::vs 
+
+let free_vars f = let rec free_vars_aux f vars =
+                    match f with
+                    |    False  -> vars
+                    |     True  -> vars
+                    |    Var(s) -> if List.mem_assoc s vars then vars
+                                   else (s, false)::vars
+                    |    Neg(p) -> free_vars_aux p vars
+                    |  Or(p, q) -> let vars_p = free_vars_aux p vars
+                                   in free_vars_aux q vars_p
+                    | And(p, q) -> let vars_p = free_vars_aux p vars
+                                   in free_vars_aux q vars_p
+                  in
+                  free_vars_aux f [];;
+
+(*  x and (y or z) or x or z  *)  
+let f1 = Or(And(Var("x"), Or(Var("y"), Var("z"))), Or(Var("x"), Var("z")));;
+
+let f2 = Neg(And(Var("x"), Neg(Var("x"))));;
+
+let rec eval f e = match f with
+  |     False -> false
+  |      True -> true
+  |    Var(s) -> List.assoc s e
+  |    Neg(p) -> not (eval p e)
+  |  Or(p, q) -> (eval p e) || (eval q e)
+  | And(p, q) -> (eval p e) && (eval q e)
+               
+let is_tautology f = let e = free_vars f in
+                     let rec taut_aux f environ =
+                       if eval f environ
+                       then
+                         try taut_aux f (next_env environ)
+                         with StopIteration s -> (true, [])
+                       else (false, environ)
+                     in
+                     taut_aux f e;;
+                              
+                              
