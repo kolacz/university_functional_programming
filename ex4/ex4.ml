@@ -286,13 +286,13 @@ is_tautology (And(Or(Neg( cnf (Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Va
 
 let is_tautology_cnf f = let rec tcnf_aux f acc =
                            match f with
-                           |             Var(s) -> List.mem ("-"^s) acc
-                           |        Neg(Var(s)) -> List.mem s acc
+                           |             Var(s) -> List.mem (Neg(Var s)) acc
+                           |        Neg(Var(s)) -> List.mem (Var s) acc
                            |          And(p, q) -> tcnf_aux p [] && tcnf_aux q []
-                           |      Or(Var(s), q) -> if List.mem ("-"^s) acc then true
-                                                   else tcnf_aux q (s::acc)
-                           | Or(Neg(Var(s)), q) -> if List.mem s acc then true
-                                                   else tcnf_aux q (("-"^s)::acc)
+                           |      Or(Var(s), q) -> if List.mem (Neg(Var s)) acc then true
+                                                   else tcnf_aux q ((Var s)::acc)
+                           | Or(Neg(Var(s)), q) -> if List.mem (Var s) acc then true
+                                                   else tcnf_aux q ((Neg(Var s))::acc)
                            | Or(p, q) -> tcnf_aux p acc || tcnf_aux q acc
                          in
                          tcnf_aux (cnf f) [];;
