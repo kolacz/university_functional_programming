@@ -156,6 +156,8 @@ let m_l2 = MTree( 1,
                            MTree( 17, [])]);
                    MTree( 5, [])]);;
 
+
+(* Map *) 
 let bfs_lst tree f = let rec children_to_queue lst q =
                        match lst with
                        | []    -> q
@@ -198,8 +200,7 @@ and dfs_aux_lst lst f =
 
 (* Zad. 4 *)
 
-type formula = False | True
-               | Var of string
+type formula =   Var of string
                | Neg of formula
                |  Or of formula * formula
                | And of formula * formula;;
@@ -214,8 +215,6 @@ let rec next_env (e :env) = match e with
 
 let free_vars f = let rec free_vars_aux f vars =
                     match f with
-                    |    False  -> vars
-                    |     True  -> vars
                     |    Var(s) -> if List.mem_assoc s vars then vars
                                    else (s, false)::vars
                     |    Neg(p) -> free_vars_aux p vars
@@ -239,13 +238,12 @@ let f3 = Or(And(Var("p"), Neg(Var("q"))),
                   Var("r"))));;
   
 let rec eval f e = match f with
-  |     False -> false
-  |      True -> true
   |    Var(s) -> List.assoc s e
   |    Neg(p) -> not (eval p e)
   |  Or(p, q) -> (eval p e) || (eval q e)
   | And(p, q) -> (eval p e) && (eval q e)
-               
+
+(* all(iter) *)
 let is_tautology f = let e = free_vars f in
                      let rec taut_aux f environ =
                        if eval f environ
@@ -267,7 +265,8 @@ let rec nnf f = match f with
   |              _ -> f
 
 (***************************************)                  
-                   
+(* nowy typ cnf -> listy *)
+                    
 let cnf f = let rec cnf_aux f =
               match f with
               | Or(p, And(q, r)) -> And(cnf_aux(Or(cnf_aux p, cnf_aux q)),
@@ -284,19 +283,19 @@ is_tautology (And(Or(Neg( cnf (Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Va
 
 (***************************************)
 
+(* popraw *) 
 let is_tautology_cnf f = let rec tcnf_aux f acc =
                            match f with
-                           |             Var(s) -> List.mem ("-"^s) acc
-                           |        Neg(Var(s)) -> List.mem s acc
+                           |             Var(s) -> List.mem (Neg(Var s)) acc
+                           |        Neg(Var(s)) -> List.mem (Var s) acc
                            |          And(p, q) -> tcnf_aux p [] && tcnf_aux q []
-                           |      Or(Var(s), q) -> if List.mem ("-"^s) acc then true
-                                                   else tcnf_aux q (s::acc)
-                           | Or(Neg(Var(s)), q) -> if List.mem s acc then true
-                                                   else tcnf_aux q (("-"^s)::acc)
-                           | Or(p, q) -> tcnf_aux p acc || tcnf_aux q acc
+                           |      Or(Var(s), q) -> if List.mem (Neg(Var s)) acc then true
+                                                   else tcnf_aux q ((Var s)::acc)
+                           | Or(Neg(Var(s)), q) -> if List.mem (Var s) acc then true
+                                                   else tcnf_aux q ((Neg(Var s))::acc)
+                           |           Or(p, q) -> tcnf_aux p acc || tcnf_aux q acc
                          in
                          tcnf_aux (cnf f) [];;
-
 
 
 (*let is_tautology_cnf f = let rec tcnf_aux f acc =
@@ -309,3 +308,15 @@ let is_tautology_cnf f = let rec tcnf_aux f acc =
                            | Or(p, q) -> tcnf_aux p acc || tcnf_aux q acc
                          in
                          tcnf_aux (cnf f) [];;*)
+
+(***************************************)
+
+let dnf f = let rec dnf_aux f =
+              match f with
+              | And(p, Or(q, r)) -> Or(dnf_aux(And(cnf_aux p, cnf_aux q)),
+                                       dnf_aux(And(cnf_aux p, cnf_aux r)))
+              | And(Or(p, q), r) -> Or(dnf_aux(And(cnf_aux p, cnf_aux r)),
+                                       dnf_aux(And(cdnf_aux q, cnf_aux r)))
+              | _ -> f
+            in
+            cnf_aux (nnf f);;
