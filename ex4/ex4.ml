@@ -201,7 +201,7 @@ and dfs_aux_lst lst f =
 type formula = False | True
                | Var of string
                | Neg of formula
-               | Or  of formula * formula
+               |  Or of formula * formula
                | And of formula * formula;;
 
 type env = (string * bool) list;;  
@@ -229,8 +229,15 @@ let free_vars f = let rec free_vars_aux f vars =
 (*  x and (y or z) or x or z  *)  
 let f1 = Or(And(Var("x"), Or(Var("y"), Var("z"))), Or(Var("x"), Var("z")));;
 
+(* not(x and not x) *)
 let f2 = Neg(And(Var("x"), Neg(Var("x"))));;
 
+(* (p => r) and (q => r) and (p or q) => r *) (* prawo dylematu konstrukcyjnego *)
+let f3 = Or(And(Var("p"), Neg(Var("q"))),
+            Or(And(Var("q"), Neg(Var("r"))),
+               Or(And(Neg(Var("p")), Neg(Var("q"))),
+                  Var("r"))));;
+  
 let rec eval f e = match f with
   |     False -> false
   |      True -> true
@@ -249,4 +256,36 @@ let is_tautology f = let e = free_vars f in
                      in
                      taut_aux f e;;
                               
-                              
+(***************************************)
+
+let rec nnf f = match f with
+  |       Or(p, q) ->  Or(nnf p, nnf q)
+  |      And(p, q) -> And(nnf p, nnf q)
+  | Neg( Or(p, q)) -> And(nnf(Neg(p)), nnf(Neg(q)))
+  | Neg(And(p, q)) ->  Or(nnf(Neg(p)), nnf(Neg(q)))
+  |    Neg(Neg(p)) -> p 
+  |              _ -> f
+
+(***************************************)                  
+                   
+let cnf f = let rec cnf_aux f =
+              match f with
+              | Or(p, And(q, r)) -> And(cnf_aux(Or(cnf_aux p, cnf_aux q)),
+                                        cnf_aux(Or(cnf_aux p, cnf_aux r)))
+              | Or(And(p, q), r) -> And(cnf_aux(Or(cnf_aux p, cnf_aux r)),
+                                        cnf_aux(Or(cnf_aux q, cnf_aux r)))
+              | _ -> f
+            in
+            cnf_aux (nnf f);;
+
+(*
+is_tautology (And(Or(Neg( cnf (Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Var("p"), And(Var("q"), Var("t"))))))), Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Var("p"), And(Var("q"), Var("t")))))), Or( cnf (Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Var("p"), And(Var("q"), Var("t")))))), Neg(Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Var("p"), And(Var("q"), Var("t")))))))));; 
+ *)
+
+(***************************************)
+
+let is_tautology_cnf f = ()
+
+
+
+
