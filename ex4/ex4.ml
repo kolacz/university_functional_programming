@@ -1,5 +1,5 @@
 (* Zad. 1 *)
-
+ 
 let palindrom k = let rec halve_aux k m acc =
                     match (k, m) with
                     | (t, [])             -> (acc, t)
@@ -34,6 +34,7 @@ let is_balanced t = let rec vcount tree  =
                                            && (is_balanced_aux rt acc)
                     in
                     is_balanced_aux t 0;;
+
 
 let snd (a, b) = b
 let is_balanced2 t = let rec is_balanced_aux t = 
@@ -266,6 +267,25 @@ let rec nnf f = match f with
 
 (***************************************)                  
 (* nowy typ cnf -> listy *)
+
+(* 
+type formula =   Var of string
+               | Neg of formula
+               |  Or of formula * formula
+               | And of formula * formula;; *)
+                    
+type literal = V of string | NV of string
+type norm_formula = literal list list
+
+let formula_to_cnf f = let ftoc_aux f acc1 acc2 =
+                          match f with
+                          | Var(s)      ->  (V s)::acc2
+                          | Neg(Var(s)) -> (NV s)::acc2
+                          | Or(p, q)    -> (ftoc_aux p acc1)
+                             
+                        in
+                        ftoc_aux f [] [];
+                  
                     
 let cnf f = let rec cnf_aux f =
               match f with
@@ -311,7 +331,7 @@ let is_tautology_cnf f = let rec tcnf_aux f acc =
 
 (***************************************)
 
-let dnf f = let rec dnf_aux f =
+(*let dnf f = let rec dnf_aux f =
               match f with
               | And(p, Or(q, r)) -> Or(dnf_aux(And(cnf_aux p, cnf_aux q)),
                                        dnf_aux(And(cnf_aux p, cnf_aux r)))
@@ -320,3 +340,4 @@ let dnf f = let rec dnf_aux f =
               | _ -> f
             in
             cnf_aux (nnf f);;
+*)
