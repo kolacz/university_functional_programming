@@ -266,27 +266,7 @@ let rec nnf f = match f with
   |              _ -> f
 
 (***************************************)                  
-(* nowy typ cnf -> listy *)
 
-(* 
-type formula =   Var of string
-               | Neg of formula
-               |  Or of formula * formula
-               | And of formula * formula;; *)
-                    
-type literal = V of string | NV of string
-type norm_formula = literal list list
-
-let formula_to_cnf f = let ftoc_aux f acc1 acc2 =
-                          match f with
-                          | Var(s)      ->  (V s)::acc2
-                          | Neg(Var(s)) -> (NV s)::acc2
-                          | Or(p, q)    -> (ftoc_aux p acc1)
-                             
-                        in
-                        ftoc_aux f [] [];
-                  
-                    
 let cnf f = let rec cnf_aux f =
               match f with
               | Or(p, And(q, r)) -> And(cnf_aux(Or(cnf_aux p, cnf_aux q)),
@@ -297,6 +277,22 @@ let cnf f = let rec cnf_aux f =
             in
             cnf_aux (nnf f);;
 
+(* nowy typ cnf -> listy *)
+type literal = V of string | NV of string
+type norm_formula = literal list list
+
+let rec cnf_to_lists f = let rec clause c acc =
+                           match c with
+                           | Var(s)      -> if not(List.mem ( V s) acc) then ( V s)::acc else acc
+                           | Neg(Var(s)) -> if not(List.mem (NV s) acc) then (NV s)::acc else acc
+                           | Or(p, q)    -> let acc1 = clause p acc in
+                                            clause q acc1
+                         in
+                         match f with
+                         | Or(p, q) as alt -> [clause alt []] 
+                         | And(p, q)       -> cnf_to_lists p @ cnf_to_lists q;;
+
+                     
 (*
 is_tautology (And(Or(Neg( cnf (Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Var("p"), And(Var("q"), Var("t"))))))), Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Var("p"), And(Var("q"), Var("t")))))), Or( cnf (Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Var("p"), And(Var("q"), Var("t")))))), Neg(Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Var("p"), And(Var("q"), Var("t")))))))));; 
  *)
@@ -304,7 +300,7 @@ is_tautology (And(Or(Neg( cnf (Or(And(Var("p"), And(Var("q"), Var("r"))), (Or(Va
 (***************************************)
 
 (* popraw *) 
-let is_tautology_cnf f = let rec tcnf_aux f acc =
+(*let is_tautology_cnf f = let rec tcnf_aux f acc =
                            match f with
                            |             Var(s) -> List.mem (Neg(Var s)) acc
                            |        Neg(Var(s)) -> List.mem (Var s) acc
@@ -315,19 +311,26 @@ let is_tautology_cnf f = let rec tcnf_aux f acc =
                                                    else tcnf_aux q ((Neg(Var s))::acc)
                            |           Or(p, q) -> tcnf_aux p acc || tcnf_aux q acc
                          in
-                         tcnf_aux (cnf f) [];;
-
-
-(*let is_tautology_cnf f = let rec tcnf_aux f acc =
-                           match f with
-                           |             Var(s) -> List.mem ("-"^s) acc
-                           |        Neg(Var(s)) -> List.mem s acc
-                           |          And(p, q) -> tcnf_aux p [] && tcnf_aux q []
-                           |      Or(Var(s), q) -> tcnf_aux q (s::acc)
-                           | Or(Neg(Var(s)), q) -> tcnf_aux q (("-"^s)::acc)
-                           | Or(p, q) -> tcnf_aux p acc || tcnf_aux q acc
-                         in
                          tcnf_aux (cnf f) [];;*)
+
+let is_tautology_cnf f = let neg p =
+                           match p with
+                           |  V s -> NV s
+                           | NV s -> V s 
+                         in
+                         let rec neg_found p ps =
+                           match ps with
+                           | []    -> false
+                           | l::ls -> if p = neg l then true
+                                      else neg_found p ls
+                         in
+                         let rec tcnf_aux e c =
+                           match c with
+                           | []    -> false && e
+                           | l::ls -> if not(neg_found l ls)
+                                      then tcnf_aux e ls else true && e
+                         in
+                         List.fold_left tcnf_aux true (cnf_to_lists (cnf f));;
 
 (***************************************)
 
