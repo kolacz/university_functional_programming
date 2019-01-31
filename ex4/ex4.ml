@@ -344,3 +344,35 @@ let is_tautology_cnf f = let neg p =
             in
             cnf_aux (nnf f);;
 *)
+
+
+(***************************************)
+
+(* Zad. 5 *)
+
+let rec fac_cps n cont = if n == 0 then cont 1
+                         else fac_cps (n - 1) (fun v -> cont (v * n));;
+
+(* fac_cps (n - 1) (fun v -> cont (v * n)) =  fac_cps (n - 2) (fun w -> (fun v -> cont (v * n)) (w * (n - 1))) *) 
+
+(* fac_cps 2 (fun x -> x) = fac_cps 1 (fun v -> cont (v * 2)) = 
+   fac_cps 0 (fun w -> (fun v -> cont (v * 2)) (w * 1)) =
+   (fun w -> (fun v -> cont (v * 2)) (w * 1)) 1 *)
+
+let pow2'  a cont = cont (a ** 2.);;
+let add' a b cont = cont (a +. b);;
+let sqrt'  a cont = cont (sqrt a);;
+let pyth a b cont = pow2' a (fun a2 -> pow2' b (fun b2 -> add' a2 b2 (fun anb -> sqrt' anb cont)));;
+
+(* type 'a btree = Leaf | Node of 'a btree * 'a * 'a btree;; *)
+
+let prod tree = let rec prod_cps tree cont =
+                  match tree with
+                  | Node(Leaf, v, Leaf) -> cont v
+                  | Node(Leaf, v, rt)   -> prod_cps rt (fun right -> cont(right * v))
+                  | Node(lt, v, Leaf)   -> prod_cps lt (fun left  -> cont(left * v))
+                  | Node(lt, v, rt)     -> prod_cps lt (fun left  -> prod_cps rt (fun right -> cont(left * right * v)))
+                  in
+                  prod_cps tree (fun x -> x);;
+                  
+
