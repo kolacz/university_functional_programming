@@ -416,3 +416,54 @@ let t2 = Node(
 
 (* Zad. 6 *)
 
+type 'a place = {front: 'a list; rear: 'a list};;
+
+exception IndexError of string 
+let findNth k n = let rec findNth_aux k n acc =
+                    if n = 0 then {front = acc; rear = k}
+                    else match k with
+                         | []    -> raise(IndexError "List index out of range") 
+                         | x::xs -> findNth_aux xs (n - 1) (x::acc)
+                  in findNth_aux k n [];;
+
+let collapse {front=list1; rear=list2} = let rec collapse_aux list1 acc =
+                                               match list1 with
+                                               | []    -> acc
+                                               | x::xs -> collapse_aux xs (x::acc)
+                                             in
+                                             collapse_aux list1 list2;;
+
+(***************************************)
+
+let add item {front=list1; rear=list2} = {front = list1; rear = item::list2} 
+
+let del {front=list1; rear=list2} = match list2 with
+  | []    -> raise(IndexError "Empty list")
+  | x::xs -> {front = list1; rear = xs};;
+
+(***************************************)
+
+let next {front=list1; rear=list2} = match list2 with
+  | []    -> raise(IndexError "Out of range")
+  | x::xs -> {front = x::list1; rear = xs};;
+           
+let prev {front=list1; rear=list2} = match list1 with
+  | []    -> raise(IndexError "Out of range")
+  | x::xs -> {front = xs; rear = x::list2};;
+
+(***************************************)
+
+type 'a son = LeftSon of 'a * 'a btree | RightSon of 'a btree * 'a
+  
+type 'a btplace = 'a btree * 'a son list;;
+
+
+(*
+//        * 
+//      *   *
+//         * *
+//         ^
+ *)
+(* ( Node(l, v, r), [LeftSon(dad, right_brother); RightSon(uncle, grandpa)] *) 
+
+(***************************************)
