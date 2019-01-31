@@ -372,7 +372,47 @@ let prod tree = let rec prod_cps tree cont =
                   | Node(Leaf, v, rt)   -> prod_cps rt (fun right -> cont(right * v))
                   | Node(lt, v, Leaf)   -> prod_cps lt (fun left  -> cont(left * v))
                   | Node(lt, v, rt)     -> prod_cps lt (fun left  -> prod_cps rt (fun right -> cont(left * right * v)))
-                  in
-                  prod_cps tree (fun x -> x);;
-                  
+                in
+                prod_cps tree (fun x -> x);;
+
+let () = Printf.printf "prod t: %d, fac_cps (max t): %d\n" (prod t) (fac_cps 6 (fun x -> x))
+let () = Printf.printf "prod t_balanced %d, fac_cps (max t_balanced): %d\n" (prod t_balanced) (fac_cps 8 (fun x -> x))
+
+(***************************************)
+
+let prod1 tree cont = let rec prod_cps tree cont1 cont2 = 
+                        match tree with
+                        | Leaf            -> cont1 1
+                        | Node(lt, v, rt) -> if v = 0 then cont2 0
+                                             else prod_cps lt (fun left ->
+                                                      prod_cps rt (fun right ->
+                                                          cont1(left * right * v))
+                                                        cont2)
+                                                    cont2
+                      in
+                      prod_cps tree cont cont;;
+
+let t2 = Node(
+             Node(
+                 Node(
+                     Node(
+                         Leaf, 8, Leaf),
+                     4 ,
+                     Node(Leaf, 9, Leaf)),
+                 2, Node(
+                        Node(Leaf, 10,Leaf),
+                        0,
+                        Node(Leaf, 11, Leaf))),
+             1,
+             Node(
+                 Node(Leaf, 6, Leaf),
+                 3,
+                 Node(
+                     Node(Leaf, 12, Leaf),
+                     7,
+                     Node(Leaf, 13, Leaf))));;
+                           
+(***************************************)
+
+(* Zad. 6 *)
 
