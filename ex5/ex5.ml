@@ -111,3 +111,38 @@ let act state = let (capacities, amounts) = state
                                                               else transfer (-amount) caps t_idx s_idx
                                                  in
                                                  (capacities, transfer liters amounts s t);;
+
+(* nsols : (int list * int) -> int -> move list list *)
+let cons a b = (a, b)
+             
+let possible_moves glasses = let rec range m acc = function
+                               | []    -> List.rev acc
+                               | x::xs -> range (m+1) (m::acc) xs 
+                             in let r = range 0 [] glasses
+                                in
+                                let rec pairs acc = function
+                                  | []    -> acc
+                                  | x::xs -> let a1 = List.map (cons x) xs
+                                             in pairs (a1@acc) xs
+                                in let p = pairs [] r
+                                   in let rec generate_transfers acc = function
+                                        | []         -> acc
+                                        | (a, b)::xs -> generate_transfers ((TRANSFER(a, b))::(TRANSFER(b, a))::acc) xs
+                                      in
+                                      let rec generate_fill_drain acc = function
+                                        | []    -> acc
+                                        | x::xs -> generate_fill_drain ((FILL x)::(DRAIN x)::acc) xs
+                                      in
+                                      (generate_transfers [] p) @ (generate_fill_drain [] r)
+                                 
+                             
+(* nsols : (int list * int) -> int -> move list list *)
+                                      
+let nsols (glasses, volume) n = let amounts = List.map (fun x -> 0) glasses
+                                and moves = possible_moves glasses
+                                in
+                                let state_zero = (glasses, amounts)
+                                in let a1 = List.map (act state_zero) moves
+                                in a1
+                                     
+                                
