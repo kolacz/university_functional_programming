@@ -13,3 +13,26 @@ primes' = 2 : [p | p <- [3..], all (\q -> p `mod` q /= 0) (takeWhile (\q -> q*q 
 
 {- Zad. 3 -}
 
+fib :: [Integer]
+fib = 1 : 1 : zipWith (+) fib (tail fib)
+
+{- Zad. 4 -}
+
+insert :: a -> [a] -> [[a]]
+insert x [] = [[x]]
+insert x l@(y:ys) = (x:l) : (map (y:) (insert x ys))
+
+iperm :: [a] -> [[a]]
+iperm [] = [[]]
+iperm (x:xs) = [p | p' <- iperm xs, p <- insert x p']
+
+remove :: (Eq a) => a -> [a] -> [a]
+remove x [] = []
+remove x (y:ys) = if x == y then ys else y : (remove x ys)
+  
+sperm :: (Eq a) => [a] -> [[a]]
+sperm [] = [[]]
+sperm xs = [x:ys | x <- xs, ys <- sperm (remove x xs)]
+
+{- Zad. 5 -}
+
