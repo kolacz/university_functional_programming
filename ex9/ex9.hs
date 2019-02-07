@@ -36,3 +36,10 @@ sperm xs = [x:ys | x <- xs, ys <- sperm (remove x xs)]
 
 {- Zad. 5 -}
 
+sublist :: [a] -> [[a]]
+sublist [] = [[]]
+sublist (x:xs) = (map (x:) (sublist xs)) ++ (sublist xs)
+
+{- Zad. 6 -}
+
+
