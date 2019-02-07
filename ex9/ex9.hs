@@ -42,4 +42,11 @@ sublist (x:xs) = (map (x:) (sublist xs)) ++ (sublist xs)
 
 {- Zad. 6 -}
 
+(><) :: [a] -> [b] -> [(a, b)]
+(><) xs ys = aux xs ys [] where
+  aux xs (y:ys) acc = (zip xs acc) ++ (aux xs ys (y:acc))
 
+pairs :: [(Integer, Integer)]
+pairs = [0..] >< [0..]
+
+{- Zad. 7 -}
