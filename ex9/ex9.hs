@@ -43,10 +43,43 @@ sublist (x:xs) = (map (x:) (sublist xs)) ++ (sublist xs)
 {- Zad. 6 -}
 
 (><) :: [a] -> [b] -> [(a, b)]
-(><) xs ys = aux xs ys [] where
-  aux xs (y:ys) acc = (zip xs acc) ++ (aux xs ys (y:acc))
+(><) xs (y:ys) = aux xs ys [y] where
+  aux xs     [] acc =  zip xs acc
+  aux xs (z:zs) acc = (zip xs acc) ++ (aux xs zs (z:acc)) 
 
 pairs :: [(Integer, Integer)]
 pairs = [0..] >< [0..]
 
 {- Zad. 7 -}
+
+data Tree a = Node (Tree a) a (Tree a) | Leaf
+
+data Set a = Fin (Tree a) | Cofin (Tree a)
+
+setInsert :: Ord a => a -> Set a -> Set a
+setInsert x (Fin s) = Fin(treeInsert x s) where 
+  treeInsert x Leaf = Node Leaf x Leaf
+  treeInsert x s@(Node l y r) = if x < y then Node (treeInsert x l) y r else
+                                if x > y then Node l y (treeInsert x r) else s 
+
+setFromList :: Ord a => [a] -> Set a 
+setFromList xs = foldr setInsert setEmpty xs
+
+setEmpty :: Ord a => Set a
+setEmpty = Fin(Leaf)
+
+setFull :: Ord a => Set a
+setFull = undefined
+
+setUnion :: Ord a => Set a -> Set a -> Set a
+setUnion = undefined
+
+setIntersection :: Ord a => Set a -> Set a -> Set a
+setIntersection = undefined
+
+setComplement :: Ord a => Set a -> Set a
+setComplement = undefined
+
+setMember :: Ord a => a -> Set a -> Bool
+setMember = undefined
+
