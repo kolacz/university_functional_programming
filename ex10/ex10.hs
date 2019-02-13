@@ -86,4 +86,46 @@ str = \k -> \s -> \t -> k (s ++ t)
 
 (^^^) d1 d2 = \k -> d1 (d2 k)
 
-sprintf p = p (\s -> s) ""
+sprintf f = f (\s -> s) ""
+
+foo = \n -> sprintf (lit "Ala ma " ^^^ int ^^^ lit " kot" ^^^ str ^^^ lit ".") n (if n == 1 then "a" else if 1 < n && n < 5 then "y" else "ow")
+
+{- Zad. 4 -}
+
+data Color = Red | Black deriving (Show)
+data RBTree a = RBNode Color (RBTree a) a (RBTree a) | RBLeaf deriving (Show)
+
+rbnode :: Color -> RBTree a -> a -> RBTree a -> RBTree a
+rbnode Black (RBNode Red (RBNode Red a x b) y c) z d = RBNode Red (RBNode Black a x b) y (RBNode Black c z d)
+rbnode Black a x (RBNode Red (RBNode Red b y c) z d) = RBNode Red (RBNode Black a x b) y (RBNode Black c z d)
+rbnode Black a x (RBNode Red b y (RBNode Red c z d)) = RBNode Red (RBNode Black a x b) y (RBNode Black c z d)
+rbnode Black (RBNode Red a x (RBNode Red b y c)) z d = RBNode Red (RBNode Black a x b) y (RBNode Black c z d)
+rbnode c a x b = RBNode c a x b
+
+rbinsert :: Ord a => a -> RBTree a -> RBTree a
+rbinsert x t = RBNode Black a y b where
+  rbinsert_aux RBLeaf = RBNode Red RBLeaf x RBLeaf
+  rbinsert_aux t@(RBNode c a y b) = if x < y then rbnode c (rbinsert_aux a) y b else
+                                    if y < x then rbnode c a y (rbinsert_aux b) else t
+  RBNode _ a y b = rbinsert_aux t
+                                
+
+rbt_1 :: RBTree Integer
+rbt_1 = RBNode Black (RBNode Red (RBNode Black RBLeaf 1 RBLeaf) 3 (RBNode Black RBLeaf 4 RBLeaf)) 5 (RBNode Black RBLeaf 7 (RBNode Red RBLeaf 10 RBLeaf))
+
+{-
+       B5
+    R3    B7
+ B1   B4     R10
+
+> insert 8 >
+
+        B5
+   R3         R8
+ B1  B4     B7   B10
+
+
+-}
+
+
+{- Zad. 5 -}
