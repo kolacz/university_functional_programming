@@ -129,3 +129,25 @@ rbt_1 = RBNode Black (RBNode Red (RBNode Black RBLeaf 1 RBLeaf) 3 (RBNode Black 
 
 
 {- Zad. 5 -}
+
+rev :: [a] -> [a]
+rev xs = rev_aux xs [] where
+  rev_aux [] acc = acc
+  rev_aux (y:ys) acc = rev_aux ys (y:acc)
+
+halve :: [a] -> ([a], a, [a])
+halve xs = halve_aux xs xs []
+  where halve_aux (y:ys) []  acc = (rev acc, y, ys) 
+        halve_aux (y:ys) [_] acc = (rev acc, y, ys)
+        halve_aux (y:ys) (z1:z2:zs) acc = halve_aux ys zs (y:acc)
+
+rbtreeFromList :: [a] -> RBTree a
+rbtreeFromList xs = RBNode Black a x b
+  where
+    RBNode _ a x b = rb_aux xs Black
+      where
+        rb_aux [] c = RBLeaf
+        rb_aux xs c = rbnode c (rb_aux h1 (next c)) v (rb_aux h2 (next c))
+          where (h1, v, h2) = halve xs
+                next Black  = Red
+                next  Red   = Black
