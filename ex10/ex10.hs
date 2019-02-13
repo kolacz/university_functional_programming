@@ -48,9 +48,42 @@ aupdate arr@(tree, size) n x = if n > size then arr
           where m = n `div` 2 
 
 ahiext :: Array a -> a -> Array a
-ahiext = undefined 
+ahiext (tree, size) x = (ahiext_aux tree (size + 1) x, size + 1)
+  where ahiext_aux  Leaf        _ x = Node Leaf x Leaf
+        ahiext_aux (Node _ y r) 2 x = Node (Node Leaf x Leaf) y r
+        ahiext_aux (Node l y _) 3 x = Node l y (Node Leaf x Leaf)
+        ahiext_aux (Node l y r) n x = if n `mod` 2 == 0
+                                      then Node (ahiext_aux l m x) y r
+                                      else Node l y (ahiext_aux r m x)
+          where m = n `div` 2 
 
 ahirem :: Array a -> Array a
-ahirem = undefined 
+ahirem (tree, size) = if size > 0 then (ahirem_aux tree size, size - 1)
+                      else aempty
+  where ahirem_aux (Node _ y r) 2 = Node Leaf y r
+        ahirem_aux (Node l y _) 3 = Node l y Leaf
+        ahirem_aux (Node l y r) n = if n `mod` 2 == 0
+                                    then Node (ahirem_aux l m) y r
+                                    else Node l y (ahirem_aux r m)
+          where m = n `div` 2 
 
+{- Zad. 3 -}
 
+lit :: String -> (String -> a) -> String -> a
+lit s = \k -> \t -> k (t ++ s)  
+
+eol :: (String -> a) -> String -> a
+eol = \k -> \s -> k (s ++ "\n")
+
+int :: (String -> a) -> String -> (Integer -> a)
+int = \k -> \s -> \n -> k (s ++ (show n))
+
+flt :: (String -> a) -> String -> (Float -> a)
+flt = \k -> \s -> \x -> k (s ++ (show x))
+
+str :: (String -> a) -> String -> (String -> a)
+str = \k -> \s -> \t -> k (s ++ t)
+
+(^^^) d1 d2 = \k -> d1 (d2 k)
+
+sprintf p = p (\s -> s) ""
