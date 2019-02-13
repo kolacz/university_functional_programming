@@ -142,6 +142,16 @@ halve xs = halve_aux xs xs []
         halve_aux (y:ys) (z1:z2:zs) acc = halve_aux ys zs (y:acc)
 
 rbtreeFromList :: [a] -> RBTree a
+rbtreeFromList xs = rb_aux xs
+      where
+        rb_aux []  = RBLeaf
+        rb_aux [x] = RBNode Red RBLeaf x RBLeaf
+        rb_aux  xs = RBNode Black (rb_aux h1) v (rb_aux h2)
+          where (h1, v, h2) = halve xs
+
+{-
+
+rbtreeFromList :: [a] -> RBTree a
 rbtreeFromList xs = RBNode Black a x b
   where
     RBNode _ a x b = rb_aux xs Black
@@ -151,3 +161,5 @@ rbtreeFromList xs = RBNode Black a x b
           where (h1, v, h2) = halve xs
                 next Black  = Red
                 next  Red   = Black
+
+-}
