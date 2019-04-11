@@ -12,6 +12,7 @@ dfnum tree = snd(dfnum_aux tree 1)
           where (label1, t_l) = dfnum_aux l (label + 1)
                 (label2, t_r) = dfnum_aux r  label1
 
+{- Okasaki -} 
 {-
 bfnum :: BTree a -> BTree Integer
 bfnum tree = bfnum_aux [tree] 1
@@ -149,6 +150,7 @@ rbtreeFromList xs = rb_aux xs
         rb_aux  xs = RBNode Black (rb_aux h1) v (rb_aux h2)
           where (h1, v, h2) = halve xs
 
+{- level info -} 
 {-
 
 rbtreeFromList :: [a] -> RBTree a

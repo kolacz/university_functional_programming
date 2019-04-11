@@ -160,27 +160,3 @@ let nsols (glasses, volume) n = let amounts = List.map (fun x -> 0) glasses
                                                                          else collect acc n xs
                                       in
                                       List.map (List.map fst) (collect [] n base_moves);;
-
-
-let nsols1 (glasses, volume) n = let amounts = List.map (fun x -> 0) glasses
-                                 and   moves = possible_moves glasses
-                                 in
-                                 let state_zero = (glasses, amounts)
-                                 in let base_moves = (List.map (fun move -> [(move, act state_zero move)]) moves)
-                                    in let rec next_moves acc =
-                                         function
-                                         | []    -> acc
-                                         | x::xs -> next_moves ((List.map
-                                                                   (fun move -> (move, act (snd(List.hd x)) move):: x)
-                                                                   moves) @ acc) xs
-                                       in
-                                       let rec collect acc n mvs =
-                                         if n = 0 then acc
-                                         else match mvs with 
-                                              | []    -> collect acc n (next_moves [] mvs)
-                                              | x::xs -> match x with
-                                                              | (m, s) :: _ -> if List.mem volume (snd s)
-                                                                               then collect (x::acc) (n - 1) xs
-                                                                               else collect acc n xs
-                                       in
-                                       List.map (List.map fst) (collect [] n base_moves);;
